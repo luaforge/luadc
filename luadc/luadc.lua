@@ -6,9 +6,44 @@
 -- Great, got that over with.
 -- TODO
 --   Document the innards a bit
---   Refactor quantities and measures into separate objects, maybe
---   Memoise measure operations instead of creating a new domain every time
---   Other efficiency hacks as seem appropriate.
+--   
+--   Fix the domain combination rules. I think the rule should be:
+--     first applicable domain wins
+--     otherwise, none
+--   However, it would be nice if the SI domain, for example, were "sticky"
+--   without a complex test for a wildcard.
+--
+--   Get a better handle on what a Measure and a Domain are. A Domain is
+--   really a set of printing rules, and it ought to be able to know
+--   that you write 3.23 soles as S/3.23 and not as 3.2287502343 soles.
+--   It also ought to be able to prepend metric prefixes if that seems
+--   appropriate, etc.
+--
+--   A Measure is not much more than a Quantity with a Domain. However,
+--   we need a slightly more articulated view of the combination of
+--   Measures (I think); that is, we still need to compute the combined
+--   name (and it should be memoized), and we need to preserve the
+--   "SI-ness" and "metricness". More experimentation is needed.
+--
+--   The dimensionalIndex thing is interesting. Can we actually use it?
+--
+--   Date (not time intervals) and Temperature (not HeatEnergy) could
+--   be handled by subclassing Dimensions. Let's say we have an
+--   AnchoredDimension (which is a quantity and a fixed point, really);
+--   unlike regular Dimensions, AnchoredDimensions cannot be multiplied
+--   or divided, even by scalars; they can have the corresponding
+--   unanchored Dimension added or subtract; and they can be subtracted
+--   (but not added) from themselves. That should all be easy to do
+--   within the current Dimension implementation; we can test for
+--   "Dimension-ness" by using memotable membership rather than
+--   metatable equality, and from there the operators are used
+--   pretty consistently throughout, so it should just work.
+--   The interesting part is where to store the offset; it should
+--   definitely be possible to say (some temperature)..fahrenheit
+--   which would need to do both a division and a subtraction.
+--
+--   That still doesn't deal with non-linear measurements like
+--   decibels, but it's a step in the right direction, I think.
 
 -- That said, it seems to work, so go for it.
 
@@ -505,7 +540,7 @@ end
 -- Make a dimension-indexed type. The argument is the backup table,
 -- typically the same as the meta table itself.
 
-function pkg.dimensionIndex(meta)
+function pkg.DimensionIndex(meta)
   return function(self, key)
     local rv = meta[key]
     if rv then return rv end
