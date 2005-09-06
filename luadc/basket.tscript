@@ -1,0 +1,49 @@
+> function _TRACEBACK(err) return err end
+> require"basket"
+> Commodity "apple"
+> Commodity "banana"
+> Commodity "orange"
+> Commodity "pisco"  
+> Commodity "importedWine"
+>
+> Dimension("EuropeanCurrency", "EUR")
+> Dimension("USCurrency", "USD")
+ 
+> a = PriceList()
+> a:add(apple, 2.99 * Sol, kg)
+> a:add(orange, 1.18 * Sol, kg)
+> a:add(banana, 0.29 * Sol, each)
+> a:add(pisco, 29.50 * Sol, 375 * ml)
+> a:add(importedWine, 27.99 * USD, 75 * cl)
+
+> myBasket = Basket(12 * banana, 3 * kg * orange, 1 * kg * apple, 75*cl * importedWine)
+> =myBasket
+1 kg apple + 3 kg orange + 75 cl importedWine + 12 banana
+> = a:compute(myBasket)
+10.01 Sol + 27.99 USD
+> = myBasket * 3
+36 banana + 9 kg orange + 225 cl importedWine + 3 kg apple
+> = myBasket + 12 * banana
+24 banana + 3 kg orange + 75 cl importedWine + 1 kg apple
+> otherBasket = Basket(12 * banana) 
+> otherBasket:addto(375 * ml * pisco)
+> =otherBasket
+12 banana + 375 ml pisco
+> =myBasket + 2 * otherBasket
+36 banana + 750 ml pisco + 3 kg orange + 75 cl importedWine + 1 kg apple
+> =a:compute(myBasket + 2 * otherBasket)
+75.97 Sol + 27.99 USD
+
+> exchangeRate = PriceList()
+> exchangeRate:set(Sol, Sol, 1)
+> exchangeRate:set(USD, 3.23 * Sol, 1)
+> exchangeRate:set(EUR, 4.05 * Sol, 1)
+> cost = a:compute(myBasket + otherBasket)
+> =cost
+42.99 Sol + 27.99 USD
+> exchangeRate:compute(cost)
+> = exchangeRate:compute(cost)
+133.3977 Sol
+> return exchangeRate:compute(cost)/exchangeRate[D(USD)]
+41.29959752322 USD
+
